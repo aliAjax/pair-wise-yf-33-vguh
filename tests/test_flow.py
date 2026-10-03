@@ -11,8 +11,8 @@ class SatelliteFlowTest(unittest.TestCase):
         self.svc.create_satellite("op", "operator", {"id": "SAT1", "name": "遥感一号", "data_rate_mbps": 100, "priority": 8, "storage_capacity_mb": 100000, "tenant": "T1"})
         self.svc.create_station("op", "operator", {"id": "GS1", "name": "北京站", "weather": "clear"})
         self.svc.create_antenna("op", "operator", {"id": "ANT1", "station_id": "GS1", "max_rate_mbps": 80})
-        self.window = self.svc.create_window("op", "operator", {"satellite_id": "SAT1", "station_id": "GS1", "starts_at": iso(self.now), "ends_at": iso(self.now + timedelta(hours=2)), "max_rate_mbps": 70})
-        self.svc.set_quota("op", "operator", {"tenant": "T1", "station_id": "GS1", "daily_seconds": 7200})
+        self.window = self.svc.create_window("op", "operator", {"satellite_id": "SAT1", "station_id": "GS1", "starts_at": iso(self.now), "ends_at": iso(self.now + timedelta(hours=3)), "max_rate_mbps": 70})
+        self.svc.set_quota("op", "operator", {"tenant": "T1", "station_id": "GS1", "daily_seconds": 10800})
 
     def tearDown(self): self.tmp.cleanup()
 
@@ -25,8 +25,8 @@ class SatelliteFlowTest(unittest.TestCase):
         self.svc.transition(schedule["id"], "op", "operator", "", "receiving", {})
         self.svc.transition(schedule["id"], "op", "operator", "", "received", {})
         req2 = self.request(10000)
-        schedule2 = self.svc.schedule_request(req2["id"], "op", "operator", {"window_id": self.window["id"], "antenna_id": "ANT1", "starts_at": iso(self.now + timedelta(hours=1)), "ends_at": iso(self.now + timedelta(hours=1, minutes=30)), "rate_mbps": 50})
-        changed = self.svc.change_window(self.window["id"], "op", "operator", {"starts_at": iso(self.now), "ends_at": iso(self.now + timedelta(hours=1, minutes=10))})
+        schedule2 = self.svc.schedule_request(req2["id"], "op", "operator", {"window_id": self.window["id"], "antenna_id": "ANT1", "starts_at": iso(self.now + timedelta(hours=1, minutes=30)), "ends_at": iso(self.now + timedelta(hours=2)), "rate_mbps": 50})
+        changed = self.svc.change_window(self.window["id"], "op", "operator", {"starts_at": iso(self.now), "ends_at": iso(self.now + timedelta(hours=1, minutes=35))})
         impacts = {x["schedule_id"]: x for x in changed["impacts"]}
         self.assertEqual(impacts[schedule["id"]]["action"], "preserve_received_data")
         self.assertEqual(impacts[schedule2["id"]]["action"], "preempted")
